@@ -1,20 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	GoogleMap,
 	withScriptjs,
 	withGoogleMap,
-	Marker
+	Marker,
+	InfoWindow
 } from "react-google-maps";
 import * as data from "./data/data.json";
 
 function Map() {
 	const [selectedData, setSelectedData] = useState(null);
 
+	useEffect(() => {
+		const listener = e => {
+			if (e.key === "Escape") {
+				setSelectedData(null);
+			}
+		};
+		window.addEventListener("keydown", listener);
+
+		return () => {
+			window.removeEventListener("keydown", listener);
+		};
+	}, []);
+
 	return (
-		<GoogleMap
-			defaultZoom={10}
-			defaultCenter={{ lat: 44.571651, lng: -123.277702 }}
-		>
+		<GoogleMap defaultZoom={10} defaultCenter={{ lat: 45.4211, lng: -75.6903 }}>
 			{data.features.map(eachData => (
 				<Marker
 					key={eachData.properties.PARK_ID}
@@ -27,6 +38,23 @@ function Map() {
 					}}
 				/>
 			))}
+
+			{selectedData && (
+				<InfoWindow
+					onCloseClick={() => {
+						setSelectedData(null);
+					}}
+					position={{
+						lat: selectedData.geometry.coordinates[1],
+						lng: selectedData.geometry.coordinates[0]
+					}}
+				>
+					<div>
+						<h2>{selectedData.properties.NAME}</h2>
+						<p>{selectedData.properties.DESCRIPTIO}</p>
+					</div>
+				</InfoWindow>
+			)}
 		</GoogleMap>
 	);
 }
